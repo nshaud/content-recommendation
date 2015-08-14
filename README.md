@@ -7,7 +7,7 @@
 * A connection to the Internet for content recovery
 * The requirements for *pycaffe*, i.e. :
 
-    for req in $(cat distribute/python/requirements.txt); do pip install $req; done
+    `for req in $(cat distribute/python/requirements.txt); do pip install $req; done`
 
 ## Features
 
