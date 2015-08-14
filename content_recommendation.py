@@ -14,20 +14,10 @@ from content.anti_jokes import anti_jokes
 from content.content import *
 from Tkinter import Tk, BOTH
 from ttk import Frame, Button, Style
+from config import *
 
 # Enable logging
 logging.basicConfig(filename='logs/log' + time.strftime("%Y%m%d--%H-%M-%S") + '.log', level=logging.INFO)
-
-# Execute in parent directory above caffe
-CAFFE_ROOT = '../fer_tum/caffe/'
-DEFAULT_BOOST = 1.5
-STRONG_BOOST = 2.5
-NEGATIVE_BOOST = 0.67
-
-EMOTIONS = ["neutral","happy","sad","angry/disgusted","(unused #4)","surprised/afraid","(unused #6)"]
-
-# Ignore the first 30 frames so the webcam can synchronize and adjust to light
-RAMP_FRAMES = 30
 
 # Add pycaffe to the path
 sys.path.insert(0, CAFFE_ROOT + 'python')
@@ -51,13 +41,17 @@ def get_image():
 for i in xrange(RAMP_FRAMES):
      temp = get_image()
 
-def load_caffe_network():    
-    # Use CPU mode
-    caffe.set_mode_cpu()
+def load_caffe_network():
+    if GPU_MODE:
+        # Use GPU mode (needs CUDA)
+        caffe.set_mode_gpu()
+    else:
+        # Use CPU mode
+        caffe.set_mode_cpu()
 
     # Import the caffe model
-    net = caffe.Net(CAFFE_ROOT + 'models/finetune_fer_5_classes/deploy.prototxt',
-                    CAFFE_ROOT + 'models/finetune_fer_5_classes/new_finetune_fer_iter_custom_dataset_iter_74000.caffemodel',
+    net = caffe.Net(CAFFE_MODEL_PATH,
+                    CAFFE_WEIGHTS_PATH,
                     caffe.TEST)
     return net
 
