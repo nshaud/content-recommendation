@@ -63,10 +63,11 @@ def populate_content():
     Content.all_content.append(Text(map(lambda j: '\n'.join(j), jokes), categories = ['text', 'naive humor', 'carambar']))
     Content.all_content.append(Text(map(lambda j: '\n'.join(j), math_jokes), categories = ['text', 'science', 'math_jokes jokes']))
     Content.all_content.append(Text(map(lambda j: '\n'.join(j), anti_jokes), categories = ['text', 'dark humor', 'anti jokes']))
-    Content.all_content.append(WebImage(kitten, categories = ['image', 'animals', 'kitten']))
+    Content.all_content.append(WebImage(kitten, categories = ['image', 'pets', 'kitten']))
     Content.all_content.append(WebImage(calvin_and_hobbes, categories=['comic strip', 'naive humor', 'calvin and hobbes']))
     Content.all_content.append(WebImage(cyanide_and_happiness, categories=['comic strip', 'dark humor', 'cyanide and happiness']))
     Content.all_content.append(WebImage(xkcd, categories=['comic strip', 'science', 'xkcd']))
+    Content.all_content.append(WebGif(animal_gifs, categories = ['image', 'pets', 'animal gifs']))
 
 def preprocess_image(image):
     ## Brightness and contrast enhancement
@@ -167,12 +168,16 @@ class EmotionDetector(threading.Thread):
         self._stop.set()
 
     def run(self):
-        # Run until the user stops it
-        while not self._stop.isSet():
-            out = get_emotion(net)
-            # Add the output of the network to the queue
-            if out:
-                self._queue.put(out['prob'][0])
+        try:
+            # Run until the user stops it
+            while not self._stop.isSet():
+                out = get_emotion(net)
+                # Add the output of the network to the queue
+                if out:
+                    self._queue.put(out['prob'][0])
+        except Exception as e:
+            logging.critical("Emotion detector died..." + str(e))
+            return
 
 sequence = None
 detector = None
@@ -182,15 +187,12 @@ last_content = None
 # Switch to the next content and start a new detection sequence
 def show_next_content():
     global last_content
+    # Create a new thread and a new queue
+    sequence = Queue.Queue()
+    detector = EmotionDetector(sequence)
     if last_content:
         # Stop the previous detection and clear the UI
         stop_detection()
-    else:
-        # First launch
-        global sequence
-        global detector
-        sequence = Queue.Queue()
-        detector = EmotionDetector(sequence)
     # Get the next content to show
     content = Content.get_content()
     # Update the last_content variable
@@ -212,29 +214,27 @@ def stop_detection():
         # Clear the UI
         last_content.hide(gui=root)
     # If the detector is running, send it the stop signal and wait for it to finish
-    if detector.isAlive():
+    if detector and detector.isAlive():
         detector.stop()
         detector.join()
     # Extract the emotion sequence
-    emotions = sequence.queue
-    logging.info(map(lambda e: EMOTIONS[e.argmax()], emotions))
+    if sequence:
+        emotions = sequence.queue
+        logging.info(map(lambda e: EMOTIONS[e.argmax()], emotions))
 
-    if len(emotions) > 0:
-        # Compute the average for each emotion
-        probabilities = sum(emotions) / len(emotions)
-        logging.info(probabilities)
-        # Quantify the boost value
-        boost_type = convert_emotions_to_boost(probabilities)
-        # Boost the content preferences
-        last_content.boost(boost_type)
-    else:
-        logging.info("No face detected")
-        return
+        if len(emotions) > 0:
+            # Compute the average for each emotion
+            probabilities = sum(emotions) / len(emotions)
+            logging.info(probabilities)
+            # Quantify the boost value
+            boost_type = convert_emotions_to_boost(probabilities)
+            # Boost the content preferences
+            last_content.boost(boost_type)
+        else:
+            logging.info("No face detected")
+            return
     # Log the new content values
     logging.info(Content.all_categories)
-    # Create a new thread and a new queue
-    sequence = Queue.Queue()
-    detector = EmotionDetector(sequence)
 
 # Main window
 class MainFrame(Frame):
@@ -278,12 +278,19 @@ def main():
     # Center the window
     center(root, (800, 800))
     app = MainFrame(root)
+    root.bind('<Control-c>', root.quit)
     root.mainloop()
 
-
+def exit():
+    logging.info("Exit, bye !")
+    # Release the camera
+    global camera
+    camera.release()
+    del(camera)
+    
 if __name__ == '__main__':
-    main()
-
-# Release the camera
-camera.release()
-del(camera)
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+    exit()
