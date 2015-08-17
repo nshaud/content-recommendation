@@ -44,14 +44,17 @@ class Content:
             # Clear the widget
             self.widget_.pack_forget()
 
-    # Sample one content, weighted with the scores
+    # Sample one content, weighted with the scores by default
     @classmethod
-    def get_content(self):
+    def get_content(self, weighted=True):
         total = sum(c.get_score() for c in self.all_content)
         prob = random.uniform(0, total)
         upto = 0
         for content in self.all_content:
-            score = content.get_score()
+            if weighted:
+                score = content.get_score()
+            else:
+                score = 1
             if upto + score >= prob:
                 return content
             upto += score

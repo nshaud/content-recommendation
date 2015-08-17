@@ -194,7 +194,7 @@ def show_next_content():
         # Stop the previous detection and clear the UI
         stop_detection()
     # Get the next content to show
-    content = Content.get_content()
+    content = Content.get_content(weighted=WEIGHTED_RECOMMENDATION)
     # Update the last_content variable
     last_content = content
     # Try to show the content

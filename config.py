@@ -14,3 +14,5 @@ EMOTIONS = ["neutral","happy","sad","angry/disgusted","(unused #4)","surprised/a
 
 # Ignore the first 30 frames so the webcam can synchronize and adjust to light
 RAMP_FRAMES = 30
+
+WEIGHTED_RECOMMENDATION = True
