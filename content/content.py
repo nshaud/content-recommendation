@@ -118,8 +118,64 @@ class WebImage(Content):
             else:
                 # Use PIL to display the image
                 img.show()
-        except:
-            logging.warn("Cannot download image")
+        except Exception as e:
+            logging.warn("Cannot download image" + str(e))
+            raise
+
+class GifLabel(Tkinter.Label):
+    def __init__(self, master, im):
+        seq = []
+        try:
+            while 1:
+                seq.append(im.copy())
+                im.seek(len(seq))
+        except EOFError:
+                pass
+
+        try:
+            self.delay = max(im.info['duration'], 50)
+            self.delay = min(200, self.delay)
+        except KeyError:
+            self.delay = 50
+
+        first = seq[0].convert('RGBA')
+        self.frames = [PIL.ImageTk.PhotoImage(first)]
+
+        Tkinter.Label.__init__(self, master, image=self.frames[0])
+
+        temp = seq[0]
+        for image in seq[1:]:
+            temp.paste(image)
+            frame = temp.convert('RGBA')
+            self.frames.append(PIL.ImageTk.PhotoImage(frame))
+        self.idx = 0
+        self.cancel = self.after(self.delay, self.play)
+
+    def play(self):
+        self.config(image=self.frames[self.idx])
+        self.idx += 1
+        if self.idx == len(self.frames):
+            self.idx = 0
+        self.cancel = self.after(self.delay, self.play)
+
+
+class WebGif(Content):
+    def __init__(self, urls, categories = [], score = 1):
+        Content.__init__(self, categories, score)
+        self.urls = urls
+
+    def show(self, gui=None):
+        try:
+            # Try to get the gif from the web
+            f = cStringIO.StringIO(urllib.urlopen(random.sample(self.urls, 1)[0]).read())
+            img = Content.resize(PIL.Image.open(f))
+            if gui:
+                self.widget_ = GifLabel(gui, img)
+                self.widget_.pack(fill=Tkinter.BOTH,expand=True)
+            else:
+                raise NotImplementedError
+        except Exception as e:
+            logging.warn("Cannot display gif image " + str(e))
             raise
     
 # Subclass for local text
@@ -310,3 +366,87 @@ xkcd = [
 ]
 
 kitten = ["http://www.randomkittengenerator.com/cats/rotator.php"]
+
+animal_gifs = [
+    "http://i.imgur.com/ad4YO3P.gif",
+    "http://i.imgur.com/Hc0EXFR.gif",
+    "http://i.imgur.com/AIfyQ8d.gif",
+    "http://i.imgur.com/GdLzOKc.gif",
+    "http://i.imgur.com/9w2FM0n.gif",
+    "http://i.imgur.com/3VRU6af.gif",
+    "http://i.imgur.com/E172dSs.gif",
+    "http://i.imgur.com/qjWUaCM.gif",
+    "http://i.imgur.com/DX33frn.gif",
+    "http://i.imgur.com/nXpWsOj.gif",
+    "http://i.imgur.com/TJZyaVy.gif",
+    "http://i.imgur.com/BaUl5RN.gif",
+    "http://i.imgur.com/BQLLu3G.gif",
+    "http://i.imgur.com/XDGIdT8.gif",
+    "http://i.imgur.com/sblZK5j.gif",
+    "http://i.imgur.com/f7QJFxd.gif",
+    "http://i.imgur.com/GbU1Vai.gif",
+    "http://i.imgur.com/6esSdOr.gif",
+    "http://i.imgur.com/2W26LGH.gif",
+    "http://i.imgur.com/ng16KuG.gif",
+    "http://i.imgur.com/1D5sb6a.gif",
+    "http://i.imgur.com/pJ0ptxG.gif",
+    "http://i.imgur.com/sHU443Q.gif",
+    "http://i.imgur.com/VXPv9lN.gif",
+    "http://i.imgur.com/cPkI2Fi.gif",
+    "http://i.imgur.com/1FurBDb.gif",
+    "http://i.imgur.com/W5d1a9D.gif",
+    "http://i.imgur.com/1F1cn5Z.gif",
+    "http://i.imgur.com/OvTS5rH.gif",
+    "http://i.imgur.com/IUmRyN0.gif",
+    "http://i.imgur.com/sfhIBFP.gif",
+    "http://i.imgur.com/RMmlfJ5.gif",
+    "http://i.imgur.com/quqNDor.gif",
+    "http://i.imgur.com/mqOmfP1.gif",
+    "http://i.imgur.com/ad4YO3P.gif",
+    "http://i.imgur.com/Hc0EXFR.gif",
+    "http://i.imgur.com/AIfyQ8d.gif",
+    "http://i.imgur.com/GdLzOKc.gif",
+    "http://i.imgur.com/9w2FM0n.gif",
+    "http://i.imgur.com/3VRU6af.gif",
+    "http://i.imgur.com/E172dSs.gif",
+    "http://i.imgur.com/qjWUaCM.gif",
+    "http://i.imgur.com/DX33frn.gif",
+    "http://i.imgur.com/nXpWsOj.gif",
+    "http://i.imgur.com/TJZyaVy.gif",
+    "http://i.imgur.com/BaUl5RN.gif",
+    "http://i.imgur.com/BQLLu3G.gif",
+    "http://i.imgur.com/XDGIdT8.gif",
+    "http://i.imgur.com/sblZK5j.gif",
+    "http://i.imgur.com/f7QJFxd.gif",
+    "http://i.imgur.com/GbU1Vai.gif",
+    "http://i.imgur.com/GbU1Vai.gif",
+    "http://i.imgur.com/f7QJFxd.gif",
+    "http://i.imgur.com/ad4YO3P.gif",
+    "http://i.imgur.com/Hc0EXFR.gif",
+    "http://i.imgur.com/d30QNTi.gif",
+    "http://i.imgur.com/2hZGdnU.gif",
+    "http://i.imgur.com/d30QNTi.gif",
+    "http://i.imgur.com/g5ItBAF.gif",
+    "http://i.imgur.com/cpfSmCQ.gif",
+    "http://i.imgur.com/PAVgB2s.gif",
+    "http://i.imgur.com/aWpq3Wf.gif",
+    "http://i.imgur.com/Jx4Pcvy.gif",
+    "http://i.imgur.com/yEKynhv.gif",
+    "http://i.imgur.com/PxQy3ZN.gif",
+    "http://i.imgur.com/wLKSsaT.gif",
+    "http://i.imgur.com/2ldG275.gif",
+    "http://i.imgur.com/SB3KTgG.gif",
+    "http://i.imgur.com/Ien5k2a.gif",
+    "http://i.imgur.com/lpqN31u.gif",
+    "http://i.imgur.com/I0aE8jd.gif",
+    "http://i.imgur.com/hSFGAQH.gif",
+    "http://i.imgur.com/DyikqOx.gif",
+    "http://i.imgur.com/dm3k0Nd.gif",
+    "http://i.imgur.com/EXZ2sbS.gif",
+    "http://i.imgur.com/fPassLy.gif",
+    "http://i.imgur.com/SJF1YSy.gif",
+    "http://i.imgur.com/C5ivpYq.gif",
+    "http://i.imgur.com/vS67FqB.gif",
+    "http://i.imgur.com/2P5OjL5.gif",
+    "http://i.imgur.com/mrtywgX.gif"
+]
