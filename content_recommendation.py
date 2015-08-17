@@ -12,12 +12,23 @@ from content.jokes import jokes
 from content.math_jokes import math_jokes
 from content.anti_jokes import anti_jokes
 from content.content import *
-from Tkinter import Tk, BOTH
-from ttk import Frame, Button, Style
-from config import *
+from Tkinter import Tk, BOTH, StringVar
+from ttk import Frame, Button, Style, Label
+import tkMessageBox
 
 # Enable logging
 logging.basicConfig(filename='logs/log' + time.strftime("%Y%m%d--%H-%M-%S") + '.log', level=logging.INFO)
+
+no_recommend = False
+for arg in sys.argv[1:]:
+    if arg == "--no-recommend":
+        logging.warning('Using --no-recommend')
+        no_recommend = True
+
+if no_recommend:
+    from config_no_recommendation import *
+else:
+    from config import *
 
 # Add pycaffe to the path
 sys.path.insert(0, CAFFE_ROOT + 'python')
@@ -44,8 +55,10 @@ for i in xrange(RAMP_FRAMES):
 def load_caffe_network():
     if GPU_MODE:
         # Use GPU mode (needs CUDA)
+        logging.info('GPU mode')
         caffe.set_mode_gpu()
     else:
+        logging.info('CPU mode')
         # Use CPU mode
         caffe.set_mode_cpu()
 
@@ -171,10 +184,12 @@ class EmotionDetector(threading.Thread):
         try:
             # Run until the user stops it
             while not self._stop.isSet():
+                start_time = time.time()
                 out = get_emotion(net)
                 # Add the output of the network to the queue
                 if out:
                     self._queue.put(out['prob'][0])
+                logging.debug("Face processing done in " + str(time.time() - start_time))
         except Exception as e:
             logging.critical("Emotion detector died..." + str(e))
             return
@@ -182,17 +197,24 @@ class EmotionDetector(threading.Thread):
 sequence = None
 detector = None
 last_content = None
+if MAX_CONTENT:
+    content_number = 0
+else:
+    content_number = None
+content_seen = None
 
 # Finish the current content and detection
 # Switch to the next content and start a new detection sequence
 def show_next_content():
     global last_content
-    # Create a new thread and a new queue
-    sequence = Queue.Queue()
-    detector = EmotionDetector(sequence)
+    global sequence
+    global detector
     if last_content:
         # Stop the previous detection and clear the UI
         stop_detection()
+    # Create a new thread and a new queue
+    sequence = Queue.Queue()
+    detector = EmotionDetector(sequence)
     # Get the next content to show
     content = Content.get_content(weighted=WEIGHTED_RECOMMENDATION)
     logging.info("Current content : " + str(content))
@@ -209,8 +231,6 @@ def show_next_content():
 
 # Stop the detector and clear the UI
 def stop_detection():
-    global sequence
-    global detector
     if last_content:
         # Clear the UI
         last_content.hide(gui=root)
@@ -252,14 +272,34 @@ class MainFrame(Frame):
         # Create the buttons
         quitButton = Button(self, text="Quit", command=self.quit)
         quitButton.pack()
-        button = Button(self, text="Show next content", command=show_next_content)
+        global content_seen
+        content_seen = StringVar()
+        content_seen.set("0/" + str(MAX_CONTENT))
+        button = Button(self, text="Show next content", command=lambda: go_next(button, content_seen))
         button.pack()
+        if MAX_CONTENT:
+            Label(self, textvariable=content_seen).pack()
+        
 
     def quit(self):
-        stop_detection()
-        Frame.quit(self)
+        if MAX_CONTENT and content_number < MAX_CONTENT:
+            result = tkMessageBox.askquestion("Quit", "Are you sure ? Your session is incomplete...", icon='warning') == 'yes'
+        else:
+            result = True
+        if result:
+            stop_detection()
+            Frame.quit(self)
 
 root = None
+
+def go_next(button, s):
+    show_next_content()
+    if MAX_CONTENT:
+        global content_number
+        content_number += 1
+        s.set(str(content_number) + "/" + str(MAX_CONTENT))
+        if content_number == MAX_CONTENT:
+            button.config(state=Tkinter.DISABLED)
 
 # Centering function
 def center(win, size):
