@@ -10,8 +10,9 @@ class Content:
     all_categories = {}
     all_content = []
 
-    def __init__(self, categories = [], score = 1):
+    def __init__(self, str_, categories = [], score = 1):
         self.widget_ = None
+        self.str_ = str_
         self.categories = categories
         for category in categories:
             # Populate the categories dictionnary
@@ -19,6 +20,9 @@ class Content:
                 # Init the score at 1
                 Content.all_categories[category] = 1
         self.score = score
+
+    def __str__(self):
+        return self.str_
 
     # Return the content's score
     def get_score(self):
@@ -78,8 +82,8 @@ class Content:
     
 # Subclass for local images
 class Image(Content):
-    def __init__(self, images, categories = [], score = 1):
-        Content.__init__(self, categories, score)
+    def __init__(self, str_, images, categories = [], score = 1):
+        Content.__init__(self, str_, categories, score)
         self.images = images
         self.widget_ = None
 
@@ -100,8 +104,8 @@ class Image(Content):
 
 # Subclass for images on the web
 class WebImage(Content):
-    def __init__(self, urls, categories = [], score = 1):
-        Content.__init__(self, categories, score)
+    def __init__(self, str_, urls, categories = [], score = 1):
+        Content.__init__(self, str_, categories, score)
         self.urls = urls
 
     def show(self, gui=None):
@@ -163,8 +167,8 @@ class GifLabel(Tkinter.Label):
 
 
 class WebGif(Content):
-    def __init__(self, urls, categories = [], score = 1):
-        Content.__init__(self, categories, score)
+    def __init__(self, str_, urls, categories = [], score = 1):
+        Content.__init__(self, str_, categories, score)
         self.urls = urls
 
     def show(self, gui=None):
@@ -183,12 +187,12 @@ class WebGif(Content):
     
 # Subclass for local text
 class Text(Content):
-    def __init__(self, texts, categories = [], score = 1):
-        Content.__init__(self, categories, score)
+    def __init__(self, str_, texts, categories = [], score = 1):
+        Content.__init__(self, str_, categories, score)
         self.texts = texts
 
     def show(self, gui=None):
-        text = random.sample(self.texts, 1)[0]
+        text = str(self) +  ":\n" + random.sample(self.texts, 1)[0]
         if gui:
             # Show with Tkinter
             self.widget_ = Tkinter.Text(gui, relief="flat", background=gui.cget("background"), borderwidth=0)

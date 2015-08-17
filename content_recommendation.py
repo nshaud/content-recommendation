@@ -60,14 +60,14 @@ net = load_caffe_network()
 
 # Populate the content
 def populate_content():
-    Content.all_content.append(Text(map(lambda j: '\n'.join(j), jokes), categories = ['text', 'naive humor', 'carambar']))
-    Content.all_content.append(Text(map(lambda j: '\n'.join(j), math_jokes), categories = ['text', 'science', 'math_jokes jokes']))
-    Content.all_content.append(Text(map(lambda j: '\n'.join(j), anti_jokes), categories = ['text', 'dark humor', 'anti jokes']))
-    Content.all_content.append(WebImage(kitten, categories = ['image', 'pets', 'kitten']))
-    Content.all_content.append(WebImage(calvin_and_hobbes, categories=['comic strip', 'naive humor', 'calvin and hobbes']))
-    Content.all_content.append(WebImage(cyanide_and_happiness, categories=['comic strip', 'dark humor', 'cyanide and happiness']))
-    Content.all_content.append(WebImage(xkcd, categories=['comic strip', 'science', 'xkcd']))
-    Content.all_content.append(WebGif(animal_gifs, categories = ['image', 'pets', 'animal gifs']))
+    Content.all_content.append(Text('Blague Carambar', map(lambda j: '\n'.join(j), jokes), categories = ['text', 'naive humor', 'carambar']))
+    Content.all_content.append(Text('Math joke', map(lambda j: '\n'.join(j), math_jokes), categories = ['text', 'science', 'math_jokes jokes']))
+    Content.all_content.append(Text('Anti-joke', map(lambda j: '\n'.join(j), anti_jokes), categories = ['text', 'dark humor', 'anti jokes']))
+    Content.all_content.append(WebImage('Chaton', kitten, categories = ['image', 'pets', 'kitten']))
+    Content.all_content.append(WebImage('Calvin & Hobbes', calvin_and_hobbes, categories=['comic strip', 'naive humor', 'calvin and hobbes']))
+    Content.all_content.append(WebImage('Cyanide & Happiness', cyanide_and_happiness, categories=['comic strip', 'dark humor', 'cyanide and happiness']))
+    Content.all_content.append(WebImage('xkcd', xkcd, categories=['comic strip', 'science', 'xkcd']))
+    Content.all_content.append(WebGif('Gif d\'animaux', animal_gifs, categories = ['image', 'pets', 'animal gifs']))
 
 def preprocess_image(image):
     ## Brightness and contrast enhancement
@@ -195,6 +195,7 @@ def show_next_content():
         stop_detection()
     # Get the next content to show
     content = Content.get_content(weighted=WEIGHTED_RECOMMENDATION)
+    logging.info("Current content : " + str(content))
     # Update the last_content variable
     last_content = content
     # Try to show the content
