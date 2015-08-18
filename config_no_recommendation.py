@@ -6,9 +6,9 @@ CAFFE_WEIGHTS_PATH = 'model/fer_alexnet_weights.caffemodel'
 
 GPU_MODE = False
 
-DEFAULT_BOOST = 1.5
-STRONG_BOOST = 2.5
-NEGATIVE_BOOST = 0.67
+DEFAULT_BOOST = 1.4
+STRONG_BOOST = 1.9
+NEGATIVE_BOOST = 0.715
 
 EMOTIONS = ["neutral","happy","sad","angry/disgusted","(unused #4)","surprised/afraid","(unused #6)"]
 
