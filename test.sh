@@ -4,12 +4,12 @@
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/distribute/lib
 
 # Run the Python script
-rand=$(( $RANDOM % 2 ))
+rand=$(( $RANDOM % 3 ))
 
-if [[ $rand -eq 1 ]]; then
-    python2.7 content_recommendation.py
-    python2.7 content_recommendation.py --no-recommend
-else
-    python2.7 content_recommendation.py --no-recommend
-    python2.7 content_recommendation.py
-fi
+for i in 0 1 2; do
+    opt=""
+    if [[ $rand -eq i ]]; then
+        opt="--no-recommend"
+    fi
+    python2.7 content_recommendation.py $opt
+done
